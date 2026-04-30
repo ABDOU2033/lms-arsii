@@ -1,0 +1,21 @@
+<?php
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$kernel = $app->make('Illuminate\Contracts\Console\Kernel');
+$kernel->bootstrap();
+
+use Illuminate\Support\Facades\DB;
+
+// Lesson 73: Introduction à HTML
+DB::table('lecons')->where('id', 73)->update([
+    'contenu' => "# Introduction à HTML\n\n## 1. Qu'est-ce que HTML ?\n\n**HTML** (HyperText Markup Language) est le langage de balisage standard pour créer des pages web.\n\n## 2. Structure de Base\n\n```html\n<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Ma Page</title>\n</head>\n<body>\n    <h1>Bienvenue !</h1>\n    <p>Ceci est un paragraphe.</p>\n</body>\n</html>\n```\n\n## 3. Balises Essentielles\n\n### Titres\n```html\n<h1>Titre principal</h1>\n<h2>Sous-titre</h2>\n<h3>Sous-sous-titre</h3>\n```\n\n### Paragraphes et Texte\n```html\n<p>Un paragraphe.</p>\n<p>Texte en <strong>gras</strong> et <em>italique</em>.</p>\n```\n\n### Liens\n```html\n<a href=\"https://example.com\">Visiter</a>\n```\n\n### Images\n```html\n<img src=\"photo.jpg\" alt=\"Description\">\n```\n\n## 4. Listes\n\n### Liste à puces\n```html\n<ul>\n    <li>Élément 1</li>\n    <li>Élément 2</li>\n</ul>\n```\n\n### Liste numérotée\n```html\n<ol>\n    <li>Premier</li>\n    <li>Deuxième</li>\n</ol>\n```\n\n## 5. Tableaux\n\n```html\n<table border=\"1\">\n    <tr>\n        <th>Nom</th>\n        <th>Âge</th>\n    </tr>\n    <tr>\n        <td>Ahmed</td>\n        <td>25</td>\n    </tr>\n</table>\n```\n\n## 6. Formulaires\n\n```html\n<form action=\"/submit\" method=\"POST\">\n    <label for=\"nom\">Nom :</label>\n    <input type=\"text\" id=\"nom\" name=\"nom\" required>\n    \n    <label for=\"email\">Email :</label>\n    <input type=\"email\" id=\"email\" name=\"email\" required>\n    \n    <button type=\"submit\">Envoyer</button>\n</form>\n```\n\n## 7. Balises Sémantiques HTML5\n\n```html\n<header>En-tête</header>\n<nav>Navigation</nav>\n<main>Contenu principal</main>\n<footer>Pied de page</footer>\n```\n\n## Bonnes Pratiques\n\n✅ Toujours fermer les balises\n✅ Utiliser l'attribut `alt` pour les images\n✅ Utiliser les balises sémantiques\n✅ Valider sur validator.w3.org\n\n## Points Clés\n\n📌 HTML décrit la **structure** d'une page\n📌 Basé sur des **balises** ouvrantes et fermantes\n📌 HTML5 ajoute des balises **sémantiques**"
+]);
+
+echo "✅ Leçon 73 (HTML) mise à jour\n";
+
+// Lesson 74: CSS
+DB::table('lecons')->where('id', 74)->update([
+    'contenu' => "# CSS pour le Style\n\n## 1. Qu'est-ce que CSS ?\n\n**CSS** (Cascading Style Sheets) contrôle l'apparence visuelle des pages web : couleurs, polices, mises en page, animations.\n\n## 2. Trois Façons d'Utiliser CSS\n\n### Externe (recommandé)\n```html\n<link rel=\"stylesheet\" href=\"style.css\">\n```\n\n### Interne\n```html\n<style>\n    h1 { color: blue; }\n</style>\n```\n\n### Inline\n```html\n<h1 style=\"color: blue;\">Titre</h1>\n```\n\n## 3. Sélecteurs CSS\n\n```css\n/* Par élément */\np { color: black; }\n\n/* Par classe */\n.texte { color: red; }\n\n/* Par ID */\n#header { background: navy; }\n\n/* Pseudo-classe */\na:hover { color: orange; }\n```\n\n## 4. Propriétés Essentielles\n\n### Couleurs\n```css\ncolor: #333333;\nbackground-color: #f0f0f0;\n```\n\n### Typographie\n```css\nfont-family: Arial, sans-serif;\nfont-size: 16px;\nfont-weight: bold;\n```\n\n### Box Model\n```css\nwidth: 300px;\npadding: 20px;\nborder: 2px solid black;\nmargin: 15px;\n```\n\n## 5. Flexbox\n\n```css\n.container {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    gap: 20px;\n}\n```\n\n## 6. CSS Grid\n\n```css\n.grid {\n    display: grid;\n    grid-template-columns: repeat(3, 1fr);\n    gap: 20px;\n}\n```\n\n## 7. Responsive Design\n\n```css\n@media (max-width: 768px) {\n    .container {\n        flex-direction: column;\n    }\n}\n```\n\n## Bonnes Pratiques\n\n✅ Utiliser des classes plutôt que des IDs\n✅ Mobile-first\n✅ Utiliser des variables CSS\n✅ Tester sur différentes tailles d'écran\n\n## Points Clés\n\n📌 CSS contrôle **l'apparence** visuelle\n📌 **Flexbox** pour layouts 1D\n📌 **CSS Grid** pour layouts 2D\n📌 **Media Queries** pour le responsive"
+]);
+
+echo "✅ Leçon 74 (CSS) mise à jour\n";

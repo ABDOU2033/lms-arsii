@@ -1,0 +1,1 @@
+<?php require "vendor/autoload.php"; require "bootstrap/app.php"; $quiz = \App\Models\Quiz::find(5); if(!$quiz){echo "no quiz".PHP_EOL; exit;} foreach($quiz->questions as $q){echo "Q{$q->id} {$q->enonce} type={$q->type} points={$q->points}".PHP_EOL; foreach($q->choixReponses as $c){echo " - {$c->id} {$c->contenu} corr=".(($c->est_correcte)?1:0).PHP_EOL;}}
