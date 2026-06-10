@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:enseignant'])->prefix('enseignant')->name('ense
     Route::get('/cours/{cours}/edit', [EnseignantController::class, 'editCours'])->name('cours.edit');
     Route::put('/cours/{cours}', [EnseignantController::class, 'updateCours'])->name('cours.update');
     Route::delete('/cours/{cours}', [EnseignantController::class, 'destroyCours'])->name('cours.destroy');
+    Route::post('/cours/{cours}/generer-cle', [EnseignantController::class, 'genererCleInscription'])->name('cours.genererCle');
     
     // CRUD Leçons
     Route::get('/cours/{cours}/lecon/create', [EnseignantController::class, 'createLecon'])->name('lecon.create');
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'role:enseignant'])->prefix('enseignant')->name('ense
     Route::delete('/question/{question}', [EnseignantController::class, 'destroyQuestion'])->name('question.destroy');
     
     Route::get('/resultats', [EnseignantController::class, 'resultats'])->name('resultats');
+    Route::post('/reponse/{reponse}/evaluer', [EnseignantController::class, 'evaluerReponse'])->name('reponse.evaluer');
+    Route::get('/quiz/{quiz}/correction/{etudiant}', [EnseignantController::class, 'corrigerCopie'])->name('copie.corriger');
+    Route::post('/quiz/{quiz}/correction/{etudiant}/enregistrer', [EnseignantController::class, 'enregistrerCorrection'])->name('copie.enregistrer');
 });
 
 // Routes étudiant

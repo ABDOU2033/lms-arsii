@@ -1,0 +1,36 @@
+@startuml
+title Séquence de création d'un cours
+actor "Enseignant" as Teacher
+participant "Interface Web" as UI
+participant "CourseController" as Controller
+participant "CourseService" as Service
+participant "CourseRepository" as Repository
+participant "Base de données" as DB
+
+Teacher -> UI : Ouvre la page "Créer cours"
+UI -> Teacher : Formulaire vide
+Teacher -> UI : Saisit les informations du cours
+Teacher -> UI : Soumet le formulaire
+UI -> Controller : POST /courses (données du cours)
+activate Controller
+Controller -> Service : createCourse(données)
+activate Service
+Service -> Repository : save(données)
+activate Repository
+Repository -> DB : INSERT INTO courses ...
+activate DB
+DB --> Repository : succès / ID du cours
+deactivate DB
+Repository --> Service : cours créé
+deactivate Repository
+Service --> Controller : cours créé
+deactivate Service
+Controller --> UI : redirection vers liste cours + message succès
+deactivate Controller
+UI --> Teacher : Affiche confirmation
+
+alt Erreur de validation
+    Controller -> UI : Retourne erreurs de validation
+    UI --> Teacher : Affiche messages d'erreur
+end
+@enduml

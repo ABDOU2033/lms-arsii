@@ -23,8 +23,20 @@
                     <td>{{ $reponse->question->quiz->titre }}</td>
                     <td>{{ $reponse->question->enonce }}</td>
                     <td>{{ $reponse->contenu }}</td>
-                    <td>{{ $reponse->est_correcte ? 'Oui' : 'Non' }}</td>
-                    <td>{{ $reponse->score_obtenu }}</td>
+                    <td>
+                        @if($reponse->score_obtenu === -1)
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> En attente</span>
+                        @else
+                            {{ $reponse->est_correcte ? 'Oui' : 'Non' }}
+                        @endif
+                    </td>
+                    <td>
+                        @if($reponse->score_obtenu === -1)
+                            <span class="text-muted">--</span>
+                        @else
+                            {{ $reponse->score_obtenu }}
+                        @endif
+                    </td>
                     <td>{{ $reponse->date_reponse->format('d/m/Y H:i') }}</td>
                 </tr>
             @endforeach

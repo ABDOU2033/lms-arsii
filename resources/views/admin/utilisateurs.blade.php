@@ -110,16 +110,6 @@
                                                             </button>
                                                         </form>
                                                     @endif
-                                                    
-                                                    @if($user->role !== 'administrateur' || $user->id !== 1)
-                                                        <form action="{{ route('admin.utilisateurs.supprimer', $user) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer cet utilisateur ? Cette action est irréversible.')" title="Supprimer">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
                                                 @endif
                                             </td>
                                         </tr>

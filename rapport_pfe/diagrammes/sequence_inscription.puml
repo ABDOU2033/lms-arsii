@@ -1,0 +1,60 @@
+@startuml sequence_inscription
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Étudiant" as Etu
+boundary "Catalogue\n(IHM)" as Vue
+control "CourseController\n(Contrôleur)" as Ctrl
+entity "User" as User
+entity "Cours" as Cours
+
+Etu -> Vue : 1. cliquer("S'inscrire")
+activate Vue
+
+Vue -> Ctrl : 2. soumettreInscription(cours)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> User : 3. recupererUtilisateurConnecte()
+activate User
+User --> Ctrl : 4. utilisateur
+deactivate User
+
+Ctrl -> User : 5. verifierSiDejaInscrit(cours_id)
+activate User
+User --> Ctrl : 6. resultat (vrai / faux)
+deactivate User
+
+alt Étudiant non inscrit
+    
+    Ctrl -> User : 7. lierAuCours(cours_id, progress=0)
+    activate User
+    User --> Ctrl : 8. succès
+    deactivate User
+    
+    Ctrl -> Vue : 9. redirigerAvecMessage("Inscription réussie")
+
+else Déjà inscrit
+    
+    Ctrl -> Vue : 10. redirigerAvecMessage("Vous êtes déjà inscrit")
+
+end
+
+deactivate Ctrl
+activate Vue
+
+Vue --> Etu : 11. afficherMessage()
+deactivate Vue
+
+@enduml

@@ -66,10 +66,13 @@
                                             @if($question->choixReponses->count() === 0)
                                                 <div class="alert alert-danger">Aucun choix disponible pour cette question</div>
                                             @else
-                                                <div class="list-group">
+                                                <p class="text-muted small mb-2"><i class="bi bi-info-circle"></i> Cochez la ou les bonne(s) réponse(s) <strong>(max 2)</strong></p>
+                                                <div class="list-group qcm-group" data-question-id="{{ $question->id }}">
                                                     @foreach($question->choixReponses as $choix)
-                                                        <label class="list-group-item">
-                                                            <input class="form-check-input me-2" type="radio" name="reponses[{{ $question->id }}]" value="{{ $choix->contenu }}" required>
+                                                        <label class="list-group-item list-group-item-action">
+                                                            <input class="form-check-input me-2 qcm-checkbox" type="checkbox"
+                                                                   name="reponses[{{ $question->id }}][]"
+                                                                   value="{{ $choix->contenu }}">
                                                             {{ $choix->contenu }}
                                                         </label>
                                                     @endforeach
@@ -108,8 +111,42 @@
 </div>
 
 <script>
+// Limiter les QCM à 2 réponses maximum
+document.addEventListener('DOMContentLoaded', function() {
+    const qcmGroups = document.querySelectorAll('.qcm-group');
+    qcmGroups.forEach(function(group) {
+        const checkboxes = group.querySelectorAll('.qcm-checkbox');
+        checkboxes.forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const checked = group.querySelectorAll('.qcm-checkbox:checked');
+                if (checked.length > 2) {
+                    this.checked = false;
+                    alert('Vous ne pouvez pas sélectionner plus de 2 réponses.');
+                }
+            });
+        });
+    });
+});
+
 function validateQuiz() {
-    const questions = document.querySelectorAll('[name^="reponses["]');
+    // Vérifier les QCM (checkboxes groupées par question)
+    const qcmGroups = document.querySelectorAll('.qcm-group');
+    for (const group of qcmGroups) {
+        const checked = group.querySelectorAll('.qcm-checkbox:checked');
+        if (checked.length === 0) {
+            alert('Veuillez cocher au moins une réponse pour chaque question à choix multiple.');
+            group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+        if (checked.length > 2) {
+            alert('Vous ne pouvez pas sélectionner plus de 2 réponses pour une question QCM.');
+            group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+    }
+
+    // Vérifier les autres types (vrai/faux et texte libre)
+    const questions = document.querySelectorAll('[name^="reponses["]:not(.qcm-checkbox)');
     const questionGroups = {};
     
     // Grouper les réponses par question

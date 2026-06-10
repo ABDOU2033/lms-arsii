@@ -33,13 +33,29 @@ class EtudiantController extends Controller
         return view('etudiant.catalogue', compact('cours'));
     }
 
-    public function sInscrire(Cours $cours)
+    public function sInscrire(Request $request, Cours $cours)
     {
         $etudiant = Auth::user()->etudiant;
-        if (!$etudiant->cours()->where('cours_id', $cours->id)->exists()) {
-            Inscription::create(['etudiant_id' => $etudiant->id, 'cours_id' => $cours->id]);
-            Progression::create(['etudiant_id' => $etudiant->id, 'cours_id' => $cours->id, 'pourcentage' => 0]);
+
+        // Vérifier si déjà inscrit
+        if ($etudiant->cours()->where('cours_id', $cours->id)->exists()) {
+            return redirect()->back()->with('info', 'Vous êtes déjà inscrit à ce cours.');
         }
+
+        // Valider la clé d'inscription
+        $request->validate([
+            'cle_inscription' => 'required|string|max:10',
+        ]);
+
+        // Vérifier la clé
+        if (strtoupper($request->cle_inscription) !== $cours->cle_inscription) {
+            return redirect()->back()->withErrors(['cle_inscription' => 'Clé d\'inscription incorrecte.'])->withInput();
+        }
+
+        // Inscrire l'étudiant
+        Inscription::create(['etudiant_id' => $etudiant->id, 'cours_id' => $cours->id]);
+        Progression::create(['etudiant_id' => $etudiant->id, 'cours_id' => $cours->id, 'pourcentage' => 0]);
+
         return redirect()->back()->with('success', 'Inscrit avec succès.');
     }
 
@@ -108,6 +124,7 @@ class EtudiantController extends Controller
 
         // Recharger le quiz et ses questions pour récupérer les modifications récentes
         $quiz->refresh();
+
         $quiz->load('questions.choixReponses');
 
         return view('etudiant.quiz.show', compact('quiz'));
@@ -125,9 +142,9 @@ class EtudiantController extends Controller
                 return back()->withErrors(['general' => 'Ce quiz n\'a pas encore de questions.']);
             }
 
+            // Validation flexible : QCM envoie un tableau, les autres types une chaîne
             $request->validate([
                 'reponses' => 'required|array|min:1',
-                'reponses.*' => 'required|string|max:1000',
             ]);
 
             $etudiant = Auth::user()->etudiant;
@@ -151,13 +168,24 @@ class EtudiantController extends Controller
                     continue; // Skip invalid questions
                 }
 
+                // QCM : le contenu est un tableau de cases cochées → on joint avec '|'
+                if (is_array($contenu)) {
+                    $contenu = implode('|', array_filter(array_map('trim', $contenu)));
+                } else {
+                    $contenu = trim($contenu);
+                }
+
+                if ($contenu === '') {
+                    continue; // Ignorer les réponses vides
+                }
+
                 // Créer une nouvelle réponse
                 $reponse = Reponse::create([
                     'etudiant_id' => $etudiant->id,
                     'question_id' => $questionId,
-                    'contenu' => trim($contenu),
+                    'contenu' => $contenu,
                     'est_correcte' => false,
-                    'score_obtenu' => 0,
+                    'score_obtenu' => $question->type === 'texte_libre' ? -1 : 0,
                 ]);
 
                 Log::info('Created response: ' . $reponse->id . ' for question ' . $questionId . ' in quiz ' . $quiz->id);

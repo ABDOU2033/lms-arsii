@@ -1,0 +1,78 @@
+@startuml sequence_correction_quiz
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Enseignant" as Ens
+boundary "Vue Copies\n(IHM)" as Vue
+control "Contrôleur\n(Correction Quiz)" as Ctrl
+entity "Copie\n" as Model
+
+== Consultation des copies en attente ==
+
+Ens -> Vue : 1. ouvrirPage("Copies à corriger")
+activate Vue
+
+Vue -> Ctrl : 2. demanderListeCopies()
+activate Ctrl
+
+Ctrl -> Model : 3. recupererCopiesEnAttente()
+activate Model
+Model --> Ctrl : 4. liste_copies
+deactivate Model
+
+Ctrl --> Vue : 5. retournerVue(liste_copies)
+deactivate Ctrl
+
+Vue --> Ens : 6. afficherListeCopies()
+
+== Affichage d'une copie ==
+
+Ens -> Vue : 7. choisirCopie(copie_id)
+
+Vue -> Ctrl : 8. demanderCopie(copie_id)
+activate Ctrl
+
+Ctrl -> Model : 9. chargerCopie(copie_id)
+activate Model
+Model --> Ctrl : 10. objet_copie (avec réponses)
+deactivate Model
+
+Ctrl --> Vue : 11. retournerVueCorrection(objet_copie)
+deactivate Ctrl
+
+Vue --> Ens : 12. afficherFormulaireCorrection()
+
+== Soumission de la correction ==
+
+Ens -> Vue : 13. saisirNotes(scores_manuels) et valider
+
+Vue -> Ctrl : 14. soumettreCorrection(copie_id, scores_manuels)
+activate Ctrl
+
+Ctrl -> Model : 15. enregistrerNotesEtCalculerScore(scores_manuels)
+activate Model
+
+Ctrl -> Model : 16. mettreAJourProgressionEtudiant()
+
+Model --> Ctrl : 17. succes
+deactivate Model
+
+Ctrl --> Vue : 18. redirigerAvecMessage("Correction enregistrée avec succès")
+deactivate Ctrl
+
+Vue --> Ens : 19. afficherListeMiseAJour()
+
+deactivate Vue
+
+@enduml

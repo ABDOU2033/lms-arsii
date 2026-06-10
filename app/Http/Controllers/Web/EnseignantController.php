@@ -10,8 +10,10 @@ use App\Models\Question;
 use App\Models\ChoixReponse;
 use App\Models\Reponse;
 use App\Models\Progression;
+use App\Models\Etudiant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EnseignantController extends Controller
 {
@@ -24,8 +26,8 @@ class EnseignantController extends Controller
             $query->where('enseignant_id', $enseignant->id);
         })->count();
         
-        // Calculer la progression moyenne réelle
-        $progressionMoy = Progression::whereHas('etudiant.inscriptions.cours', function ($query) use ($enseignant) {
+        // Calculer la progression moyenne réelle (uniquement les cours de cet enseignant)
+        $progressionMoy = Progression::whereHas('cours', function ($query) use ($enseignant) {
             $query->where('enseignant_id', $enseignant->id);
         })->avg('pourcentage') ?? 0;
 
@@ -49,10 +51,13 @@ class EnseignantController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'categorie' => 'nullable|string|max:100',
+            'niveau_scolaire' => 'nullable|string|max:50',
+            'annee_universitaire' => 'nullable|string|max:9',
         ]);
 
         $enseignant = Auth::user()->enseignant;
-        $enseignant->creerCours($request->only(['titre', 'description']));
+        $enseignant->creerCours($request->only(['titre', 'description', 'categorie', 'niveau_scolaire', 'annee_universitaire']));
 
         return redirect()->route('enseignant.cours.index')->with('success', 'Cours créé.');
     }
@@ -70,9 +75,12 @@ class EnseignantController extends Controller
             'titre' => 'required|string|max:255',
             'description' => 'nullable|string',
             'statut' => 'required|in:brouillon,publie,archive',
+            'categorie' => 'nullable|string|max:100',
+            'niveau_scolaire' => 'nullable|string|max:50',
+            'annee_universitaire' => 'nullable|string|max:9',
         ]);
 
-        $cours->update($request->only(['titre', 'description', 'statut']));
+        $cours->update($request->only(['titre', 'description', 'statut', 'categorie', 'niveau_scolaire', 'annee_universitaire']));
 
         return redirect()->route('enseignant.cours.index')->with('success', 'Cours mis à jour.');
     }
@@ -93,17 +101,34 @@ class EnseignantController extends Controller
         return view('enseignant.cours.show', compact('cours', 'lecons', 'quizzes', 'etudiants'));
     }
 
+    public function genererCleInscription(Cours $cours)
+    {
+        $this->authorize('update', $cours);
+        $cle = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        $cours->update(['cle_inscription' => $cle]);
+        return redirect()->route('enseignant.cours.show', $cours)->with('success', 'Clé d\'inscription générée: ' . $cle);
+    }
+
     public function storeLecon(Request $request, Cours $cours)
     {
         $this->authorize('update', $cours);
         $request->validate([
             'titre' => 'required|string|max:255',
-            'contenu' => 'required|string',
-            'type' => 'required|in:video,texte',
+            'contenu' => 'required_unless:type,pdf|nullable|string',
+            'type' => 'required|in:video,texte,pdf',
             'ordre' => 'required|integer',
+            'fichier_pdf' => 'required_if:type,pdf|file|mimes:pdf|max:20480',
         ]);
 
-        $cours->lecons()->create($request->only(['titre', 'contenu', 'type', 'ordre']));
+        $data = $request->only(['titre', 'contenu', 'type', 'ordre']);
+
+        // Upload PDF si type = pdf
+        if ($request->type === 'pdf' && $request->hasFile('fichier_pdf')) {
+            $path = $request->file('fichier_pdf')->store('lecons/pdf', 'public');
+            $data['contenu'] = $path;
+        }
+
+        $cours->lecons()->create($data);
 
         return redirect()->back()->with('success', 'Leçon ajoutée.');
     }
@@ -114,10 +139,14 @@ class EnseignantController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'duree' => 'required|integer',
-            'note_max' => 'required|integer',
         ]);
 
-        $quiz = $cours->quizzes()->create($request->only(['titre', 'duree', 'note_max']));
+        // note_max = 0 au départ, sera calculé automatiquement quand des questions seront ajoutées
+        $quiz = $cours->quizzes()->create([
+            'titre' => $request->titre,
+            'duree' => $request->duree,
+            'note_max' => 0,
+        ]);
 
         return redirect()->route('enseignant.quiz.show', $quiz)->with('success', 'Quiz ajouté. Ajoutez des questions maintenant.');
     }
@@ -125,6 +154,7 @@ class EnseignantController extends Controller
     public function showQuiz(Quiz $quiz)
     {
         $this->authorize('view', $quiz->cours);
+        
         $questions = $quiz->questions;
 
         $resultats = Reponse::whereHas('question', function ($query) use ($quiz) {
@@ -142,16 +172,10 @@ class EnseignantController extends Controller
             'type' => 'required|in:qcm,vrai_faux,texte_libre',
             'points' => 'required|integer|min:1',
             'correct_vrai_faux' => 'required_if:type,vrai_faux|in:Vrai,Faux',
+            'reponse_attendue' => 'nullable|string',
         ]);
 
-        $currentTotal = $quiz->questions()->sum('points');
-        $newTotal = $currentTotal + $request->points;
-        if ($newTotal > $quiz->note_max) {
-            $dispo = max(0, $quiz->note_max - $currentTotal);
-            return redirect()->back()->withInput()->withErrors(['points' => "La somme totale des points ($newTotal) ne doit pas dépasser la note maximale du quiz ({$quiz->note_max}). Vous avez $dispo point(s) disponible(s)."]);
-        }
-
-        $question = $quiz->questions()->create($request->only(['enonce', 'type', 'points']));
+        $question = $quiz->questions()->create($request->only(['enonce', 'type', 'points', 'reponse_attendue']));
 
         if ($request->type === 'qcm') {
             $choixValides = 0;
@@ -187,6 +211,9 @@ class EnseignantController extends Controller
             ChoixReponse::create(['question_id' => $question->id, 'contenu' => 'Faux', 'est_correcte' => $correct === 'Faux']);
         }
 
+        // Auto-update note_max to the new total sum of question points
+        $quiz->update(['note_max' => $quiz->questions()->sum('points')]);
+
         return redirect()->back()->with('success', 'Question ajoutée avec succès.');
     }
 
@@ -209,12 +236,28 @@ class EnseignantController extends Controller
         $this->authorize('update', $lecon->cours);
         $request->validate([
             'titre' => 'required|string|max:255',
-            'contenu' => 'required|string',
-            'type' => 'required|in:video,texte',
+            'contenu' => 'required_unless:type,pdf|nullable|string',
+            'type' => 'required|in:video,texte,pdf',
             'ordre' => 'required|integer',
+            'fichier_pdf' => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
-        $lecon->update($request->only(['titre', 'contenu', 'type', 'ordre']));
+        $data = $request->only(['titre', 'contenu', 'type', 'ordre']);
+
+        // Upload nouveau PDF si fourni
+        if ($request->type === 'pdf' && $request->hasFile('fichier_pdf')) {
+            // Supprimer l'ancien PDF
+            if ($lecon->type === 'pdf' && $lecon->contenu) {
+                Storage::disk('public')->delete($lecon->contenu);
+            }
+            $path = $request->file('fichier_pdf')->store('lecons/pdf', 'public');
+            $data['contenu'] = $path;
+        } elseif ($request->type === 'pdf' && !$request->hasFile('fichier_pdf')) {
+            // Garder l'ancien PDF si pas de nouveau fichier
+            $data['contenu'] = $lecon->contenu;
+        }
+
+        $lecon->update($data);
 
         return redirect()->route('enseignant.cours.show', $lecon->cours)->with('success', 'Leçon mise à jour.');
     }
@@ -247,63 +290,15 @@ class EnseignantController extends Controller
         $request->validate([
             'titre' => 'required|string|max:255',
             'duree' => 'required|integer',
-            'note_max' => 'required|integer',
         ]);
 
-        $quiz->update($request->only(['titre', 'duree', 'note_max']));
+        $quiz->update([
+            'titre' => $request->titre,
+            'duree' => $request->duree,
+        ]);
 
-        // Redistribution logique (algorithme du plus grand reste)
-        $questions = $quiz->questions()->get();
-        if ($questions->count() > 0) {
-            $sumOriginal = $questions->sum('points');
-            $nouvelleNoteMax = $quiz->note_max;
-
-            if ($sumOriginal !== $nouvelleNoteMax && $sumOriginal > 0) {
-                // Si la note max est inférieure au nombre de questions, forcer au min de 1 par question
-                if ($nouvelleNoteMax < $questions->count()) {
-                    $nouvelleNoteMax = $questions->count();
-                    $quiz->update(['note_max' => $nouvelleNoteMax]);
-                }
-
-                $mapped = $questions->map(function ($q) use ($sumOriginal, $nouvelleNoteMax) {
-                    $exact = ($q->points / $sumOriginal) * $nouvelleNoteMax;
-                    $floor = floor($exact);
-                    return [
-                        'question' => $q,
-                        'exact' => $exact,
-                        'floor' => $floor,
-                        'remainder' => $exact - $floor
-                    ];
-                });
-
-                $sumFloor = $mapped->sum('floor');
-                $diff = $nouvelleNoteMax - $sumFloor;
-
-                // Trier par ordre décroissant de reste
-                $mapped = $mapped->sortByDesc('remainder')->values();
-
-                // Assigner les points entiers et distribuer la différence
-                foreach ($mapped as $index => $item) {
-                    $finalPoints = $item['floor'] + ($index < $diff ? 1 : 0);
-                    if ($finalPoints < 1) $finalPoints = 1;
-                    $item['question']->update(['points' => $finalPoints]);
-                }
-                
-                // Ajustement de sécurité au cas où l'arrondi a dépassé
-                $finalSum = $quiz->questions()->sum('points');
-                if ($finalSum > $nouvelleNoteMax) {
-                    $diff = $finalSum - $nouvelleNoteMax;
-                    $largest = $quiz->questions()->orderBy('points', 'desc')->get();
-                    foreach ($largest as $lq) {
-                        if ($diff > 0 && $lq->points > 1) {
-                            $reduction = min($diff, $lq->points - 1);
-                            $lq->update(['points' => $lq->points - $reduction]);
-                            $diff -= $reduction;
-                        }
-                    }
-                }
-            }
-        }
+        // note_max toujours égale à la somme des points des questions
+        $quiz->update(['note_max' => $quiz->questions()->sum('points')]);
 
         return redirect()->route('enseignant.cours.show', $quiz->cours)->with('success', 'Quiz mis à jour.');
     }
@@ -339,16 +334,10 @@ class EnseignantController extends Controller
             'type' => 'required|in:qcm,vrai_faux,texte_libre',
             'points' => 'required|integer|min:1',
             'correct_vrai_faux' => 'required_if:type,vrai_faux|in:Vrai,Faux',
+            'reponse_attendue' => 'nullable|string',
         ]);
 
-        $currentTotal = $question->quiz->questions()->where('id', '!=', $question->id)->sum('points');
-        $newTotal = $currentTotal + $request->points;
-        if ($newTotal > $question->quiz->note_max) {
-            $dispo = max(0, $question->quiz->note_max - $currentTotal);
-            return redirect()->back()->withInput()->withErrors(['points' => "La somme totale des points ($newTotal) ne doit pas dépasser la note maximale du quiz ({$question->quiz->note_max}). Vous pouvez attribuer un maximum de $dispo point(s) à cette question."]);
-        }
-
-        $question->update($request->only(['enonce', 'type', 'points']));
+        $question->update($request->only(['enonce', 'type', 'points', 'reponse_attendue']));
 
         if ($request->type === 'qcm') {
             $question->choixReponses()->delete();
@@ -374,7 +363,13 @@ class EnseignantController extends Controller
             $correct = $request->input('correct_vrai_faux', 'Vrai');
             ChoixReponse::create(['question_id' => $question->id, 'contenu' => 'Vrai', 'est_correcte' => $correct === 'Vrai']);
             ChoixReponse::create(['question_id' => $question->id, 'contenu' => 'Faux', 'est_correcte' => $correct === 'Faux']);
+        } elseif ($request->type === 'texte_libre') {
+            // Supprimer les anciennes réponses si on passe à texte_libre
+            $question->choixReponses()->delete();
         }
+
+        // Auto-update note_max to the new total sum of question points
+        $question->quiz->update(['note_max' => $question->quiz->questions()->sum('points')]);
 
         return redirect()->route('enseignant.quiz.show', $question->quiz)->with('success', 'Question mise à jour.');
     }
@@ -384,6 +379,9 @@ class EnseignantController extends Controller
         $this->authorize('update', $question->quiz->cours);
         $quiz = $question->quiz;
         $question->delete();
+
+        // Auto-update note_max to the new total sum of question points
+        $quiz->update(['note_max' => $quiz->questions()->sum('points')]);
 
         return redirect()->route('enseignant.quiz.show', $quiz)->with('success', 'Question supprimée.');
     }
@@ -404,6 +402,104 @@ class EnseignantController extends Controller
             $query->where('enseignant_id', $enseignant->id);
         })->with('etudiant.user', 'cours')->orderBy('pourcentage', 'desc')->get();
 
-        return view('enseignant.resultats', compact('quizzes', 'resultats', 'progressions'));
+        // Récupérer toutes les réponses pour regrouper par copie (étudiant + quiz)
+        $toutesReponses = Reponse::whereHas('question.quiz.cours', function ($query) use ($enseignant) {
+            $query->where('enseignant_id', $enseignant->id);
+        })->with(['etudiant.user', 'question.quiz'])->get();
+
+        $copies = $toutesReponses->groupBy(function($reponse) {
+            return $reponse->question->quiz_id . '_' . $reponse->etudiant_id;
+        })->map(function($group) {
+            $first = $group->first();
+            $quiz = $first->question->quiz;
+            $etudiant = $first->etudiant;
+            
+            $hasPending = $group->contains('score_obtenu', -1);
+            $scoreTotal = $quiz->calculerScore($etudiant);
+            
+            return (object)[
+                'quiz' => $quiz,
+                'etudiant' => $etudiant,
+                'date_soumission' => $group->max('created_at'),
+                'is_pending' => $hasPending,
+                'score' => $scoreTotal,
+                'reponses' => $group,
+            ];
+        })->sortByDesc('date_soumission');
+
+        return view('enseignant.resultats', compact('quizzes', 'resultats', 'progressions', 'copies'));
+    }
+
+    public function evaluerReponse(Request $request, Reponse $reponse)
+    {
+        $this->authorize('update', $reponse->question->quiz->cours);
+
+        $request->validate([
+            'score_obtenu' => 'required|integer|min:0|max:' . $reponse->question->points,
+            'est_correcte' => 'required|boolean',
+        ]);
+
+        $reponse->update([
+            'score_obtenu' => $request->score_obtenu,
+            'est_correcte' => (bool)$request->est_correcte,
+        ]);
+
+        // Mettre à jour la progression
+        $progression = Progression::where('etudiant_id', $reponse->etudiant_id)
+            ->where('cours_id', $reponse->question->quiz->cours_id)
+            ->first();
+        if ($progression) {
+            $progression->mettreAJour();
+        }
+
+        return redirect()->back()->with('success', 'Réponse évaluée avec succès.');
+    }
+
+    public function corrigerCopie(Quiz $quiz, Etudiant $etudiant)
+    {
+        $this->authorize('update', $quiz->cours);
+
+        $reponses = Reponse::where('etudiant_id', $etudiant->id)
+            ->whereHas('question', function ($query) use ($quiz) {
+                $query->where('quiz_id', $quiz->id);
+            })->with('question.choixReponses')->get();
+
+        return view('enseignant.quiz.correction', compact('quiz', 'etudiant', 'reponses'));
+    }
+
+    public function enregistrerCorrection(Request $request, Quiz $quiz, Etudiant $etudiant)
+    {
+        $this->authorize('update', $quiz->cours);
+
+        $request->validate([
+            'reponses' => 'required|array',
+            'reponses.*.score_obtenu' => 'required|integer|min:0',
+            'reponses.*.est_correcte' => 'required|boolean',
+        ]);
+
+        foreach ($request->reponses as $reponseId => $data) {
+            $reponse = Reponse::where('id', $reponseId)
+                ->where('etudiant_id', $etudiant->id)
+                ->first();
+
+            if ($reponse && $reponse->question->type === 'texte_libre') {
+                $maxPoints = $reponse->question->points;
+                $score = min((int)$data['score_obtenu'], $maxPoints);
+
+                $reponse->update([
+                    'score_obtenu' => $score,
+                    'est_correcte' => (bool)$data['est_correcte'],
+                ]);
+            }
+        }
+
+        // Mettre à jour la progression de l'étudiant pour ce cours
+        $progression = Progression::firstOrCreate(
+            ['etudiant_id' => $etudiant->id, 'cours_id' => $quiz->cours_id],
+            ['pourcentage' => 0]
+        );
+        $progression->mettreAJour();
+
+        return redirect()->route('enseignant.resultats')->with('success', 'La correction de la copie a été enregistrée avec succès.');
     }
 }

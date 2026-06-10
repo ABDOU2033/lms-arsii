@@ -1,0 +1,149 @@
+@startuml Diagramme_Sequence_Participation_Quiz
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFE1
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFE1
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Participation à un quiz
+actor "Étudiant" as Student
+boundary "quiz/show.blade.php" as View
+control "EtudiantController" as Ctrl
+entity "Quiz" as QuizModel
+entity "Reponse" as RepModel
+entity "Progression" as ProgModel
+database "Base de données" as DB
+
+autonumber
+Student -> View : Cliquer sur "Lancer le quiz"
+activate View
+View -> Ctrl : showQuiz(quiz)
+activate Ctrl
+Ctrl -> QuizModel : load('questions.choixReponses')
+activate QuizModel
+QuizModel -> DB : SELECT questions, choix
+activate DB
+DB --> QuizModel : Questions & Choix
+deactivate DB
+QuizModel --> Ctrl : Quiz avec questions
+deactivate QuizModel
+Ctrl --> View : Vue quiz/show.blade.php
+deactivate Ctrl
+View --> Student : Formulaire du quiz affiché
+
+Student -> View : Remplir et cliquer "Soumettre le quiz"
+deactivate View
+activate View
+View -> Ctrl : submitQuiz(request, quiz)
+activate Ctrl
+
+alt Aucune question dans le quiz ou réponses incomplètes
+    Ctrl --> View : Rediriger back avec erreur
+    View --> Student : Message d'erreur
+else Réponses complètes
+    Ctrl -> RepModel : Supprimer anciennes réponses
+    activate RepModel
+    RepModel -> DB : DELETE FROM reponses WHERE etudiant_id et quiz_id
+    activate DB
+    DB --> RepModel : OK
+    deactivate DB
+    deactivate RepModel
+
+    loop Pour chaque question du quiz
+        Ctrl -> RepModel : create(etudiant_id, question_id, contenu)
+        activate RepModel
+        RepModel -> DB : INSERT INTO reponses
+        activate DB
+        DB --> RepModel : Réponse créée
+        deactivate DB
+        RepModel --> Ctrl : Réponse
+        deactivate RepModel
+        Ctrl -> QuizModel : corrigerAutomatiquement(reponse)
+        activate QuizModel
+        QuizModel --> Ctrl : OK (met à jour est_correcte)
+        deactivate QuizModel
+    end
+
+    Ctrl -> ProgModel : firstOrCreate(etudiant_id, cours_id)
+    activate ProgModel
+    ProgModel -> DB : INSERT/SELECT progression
+    activate DB
+    DB --> ProgModel : Progression
+    deactivate DB
+    Ctrl -> ProgModel : mettreAJour()
+    activate ProgModel
+    ProgModel -> DB : UPDATE pourcentage
+    activate DB
+    DB --> ProgModel : OK
+    deactivate DB
+    deactivate ProgModel
+
+    Ctrl -> QuizModel : calculerScore(etudiant)
+    activate QuizModel
+    QuizModel -> DB : SUM(score_obtenu)
+    activate DB
+    DB --> QuizModel : Score total
+    deactivate DB
+    QuizModel --> Ctrl : Score
+    deactivate QuizModel
+
+    Ctrl --> View : Vue quiz/resultat.blade.php
+    deactivate Ctrl
+    View --> Student : Afficher le score obtenu & corrections
+    deactivate View
+end
+@enduml

@@ -1,0 +1,56 @@
+@startuml sequence_creation_cours
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Enseignant" as Ens
+boundary "Vue Cours\n(IHM)" as Vue
+control "CourseController\n(Contrôleur)" as Ctrl
+entity "Course\n(Cours)" as Model
+
+Ens -> Vue : 1. cliquer("Créer un cours")
+activate Vue
+
+Vue -> Ctrl : 2. demanderFormulaireCreation()
+deactivate Vue
+activate Ctrl
+
+Ctrl --> Vue : 3. retournerFormulaire()
+deactivate Ctrl
+activate Vue
+
+Vue --> Ens : 4. afficherFormulaire()
+deactivate Vue
+
+Ens -> Vue : 5. saisirDonnees(titre, description) et valider
+activate Vue
+
+Vue -> Ctrl : 6. soumettreNouveauCours(donnees_saisies)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Ctrl : 7. validerDonnees()
+
+Ctrl -> Model : 8. creerCours(donnees_validees, enseignant_id)
+activate Model
+Model --> Ctrl : 9. cours_cree
+deactivate Model
+
+Ctrl -> Vue : 10. redirigerAvecMessage("Cours créé avec succès !")
+deactivate Ctrl
+activate Vue
+
+Vue --> Ens : 11. afficherListeDesCours()
+deactivate Vue
+
+@enduml

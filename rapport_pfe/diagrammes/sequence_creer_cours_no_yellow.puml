@@ -1,0 +1,80 @@
+@startuml Diagramme_Sequence_Creation_Cours
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFFF
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFFF
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFFF
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+}
+
+actor "Enseignant" as Teacher
+participant "Interface Web" as UI
+participant "CourseController" as Controller
+participant "CourseService" as Service
+participant "CourseRepository" as Repository
+participant "Base de données" as DB
+
+Teacher -> UI : Ouvre la page "Créer cours"
+UI -> Teacher : Formulaire vide
+Teacher -> UI : Saisit les informations du cours
+Teacher -> UI : Soumet le formulaire
+UI -> Controller : POST /courses (données du cours)
+activate Controller
+Controller -> Service : createCourse(données)
+activate Service
+Service -> Repository : save(données)
+activate Repository
+Repository -> DB : INSERT INTO courses ...
+activate DB
+DB --> Repository : succès / ID du cours
+deactivate DB
+Repository --> Service : cours créé
+deactivate Repository
+Service --> Controller : cours créé
+deactivate Service
+Controller --> UI : redirection vers liste cours + message succès
+deactivate Controller
+UI --> Teacher : Affiche confirmation
+
+alt Erreur de validation
+    Controller -> UI : Retourne erreurs de validation
+    UI --> Teacher : Affiche messages d'erreur
+end
+
+@enduml

@@ -50,8 +50,15 @@
                                                         </li>
                                                     @endforeach
                                                 </ul>
-                                            @else
-                                                <p class="mb-3">Réponse libre attendue.</p>
+                                            @elseif($question->type === 'texte_libre')
+                                                @if($question->reponse_attendue)
+                                                    <div class="mb-3 p-3 bg-info bg-opacity-10 rounded border-start border-3 border-info">
+                                                        <p class="mb-1 fw-semibold text-info"><i class="bi bi-lightbulb me-1"></i> Réponse attendue (guide de correction):</p>
+                                                        <div class="text-muted" style="white-space: pre-wrap;">{{ $question->reponse_attendue }}</div>
+                                                    </div>
+                                                @else
+                                                    <p class="mb-3 text-muted"><i class="bi bi-info-circle me-1"></i> Réponse libre attendue (aucun guide de correction fourni).</p>
+                                                @endif
                                             @endif
                                             <div class="d-flex gap-2">
                                                 <a href="{{ route('enseignant.question.edit', $question) }}" class="btn btn-sm btn-outline-primary">
@@ -89,27 +96,16 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Note maximale:</span>
-                        <span>{{ $quiz->note_max }}</span>
+                        <span>{{ $quiz->note_max }} pts</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Questions:</span>
                         <span>{{ $questions->count() }}</span>
                     </div>
-                    @if($questions->sum('points') !== $quiz->note_max)
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total brut de points:</span>
-                            <span>{{ $questions->sum('points') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total normalisé sur la note max:</span>
-                            <span>{{ $quiz->note_max }}</span>
-                        </div>
-                    @else
-                        <div class="d-flex justify-content-between">
-                            <span>Total points:</span>
-                            <span>{{ $questions->sum('points') }}</span>
-                        </div>
-                    @endif
+                    <div class="d-flex justify-content-between">
+                        <span>Total points:</span>
+                        <span>{{ $questions->sum('points') }} pts</span>
+                    </div>
                 </div>
             </div>
 

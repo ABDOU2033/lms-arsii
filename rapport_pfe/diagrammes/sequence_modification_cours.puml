@@ -1,0 +1,73 @@
+@startuml sequence_modification_cours
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Enseignant" as Ens
+boundary "IHM" as Vue
+control "CourseController\n(Contrôleur)" as Ctrl
+entity "Cours" as Model
+
+Ens -> Vue : 1. cliquer("Modifier le cours")
+activate Vue
+
+Vue -> Ctrl : 2. demanderFormulaireEdition(cours_id)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Model : 3. recupererCours(cours_id)
+activate Model
+Model --> Ctrl : 4. cours
+deactivate Model
+
+Ctrl --> Vue : 5. retournerFormulairePreRempli(cours)
+deactivate Ctrl
+activate Vue
+
+Vue --> Ens : 6. afficherFormulaire()
+deactivate Vue
+
+Ens -> Vue : 7. modifierDonnees(titre, description) et valider
+activate Vue
+
+Vue -> Ctrl : 8. soumettreModification(donnees_modifiees)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Ctrl : 9. validerDonnees()
+
+alt Données invalides
+    
+    Ctrl --> Vue : 10. redirigerAvecErreurs()
+    activate Vue
+    Vue --> Ens : 11. afficherErreursValidation()
+    deactivate Vue
+    
+else Données valides
+    
+    Ctrl -> Model : 12. mettreAJour(donnees_validees)
+    activate Model
+    Model --> Ctrl : 13. succes
+    deactivate Model
+    
+    Ctrl --> Vue : 14. redirigerAvecMessage("Cours mis à jour !")
+    activate Vue
+    
+    Vue --> Ens : 15. afficherConfirmation()
+    deactivate Vue
+
+end
+
+deactivate Ctrl
+
+@enduml

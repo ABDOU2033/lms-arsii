@@ -1,0 +1,88 @@
+@startuml Diagramme_Sequence_Statistiques_Globales
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFE1
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFE1
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Consultation des statistiques globales
+actor "Administrateur" as Admin
+boundary "admin/dashboard" as View
+control "AdminWebController" as Ctrl
+database "Base de données" as DB
+
+autonumber
+Admin -> View : Accéder au Dashboard Administrateur
+activate View
+View -> Ctrl : dashboard()
+activate Ctrl
+
+Ctrl -> DB : COUNT(users), COUNT(cours), COUNT(quizzes)
+activate DB
+DB --> Ctrl : Statistiques brutes (utilisateurs, cours, quiz)
+deactivate DB
+
+Ctrl -> DB : AVG(progressions.pourcentage)
+activate DB
+DB --> Ctrl : Progression moyenne
+deactivate DB
+
+Ctrl --> View : Vue admin/dashboard.blade.php (avec KPIs)
+deactivate Ctrl
+View --> Admin : Tableau de bord affiché avec Widgets
+deactivate View
+@enduml

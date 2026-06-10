@@ -77,6 +77,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('etudiant.resultats') }}"><i class="bi bi-trophy"></i> Résultats</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('profil.show') }}"><i class="bi bi-person-circle"></i> Mon Profil</a>
+                    </li>
                 @elseif(auth()->user()->isEnseignant())
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('enseignant.dashboard') }}"><i class="bi bi-house"></i> Dashboard</a>
@@ -87,6 +90,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('enseignant.resultats') }}"><i class="bi bi-trophy"></i> Résultats</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('profil.show') }}"><i class="bi bi-person-circle"></i> Mon Profil</a>
+                    </li>
                 @elseif(auth()->user()->isAdministrateur())
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.dashboard') }}"><i class="bi bi-house"></i> Dashboard</a>
@@ -96,6 +102,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.statistiques') }}"><i class="bi bi-bar-chart"></i> Statistiques</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('profil.show') }}"><i class="bi bi-person-circle"></i> Mon Profil</a>
                     </li>
                 @endif
             @endif

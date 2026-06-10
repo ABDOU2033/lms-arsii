@@ -1,0 +1,50 @@
+@startuml sequence_consultation_statistiques
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Administrateur" as Admin
+boundary "Vue Tableau de Bord\n(IHM)" as Vue
+control "Contrôleur\n(Tableau de bord)" as Ctrl
+entity "Utilisateur\n(Modèle)" as UserModel
+entity "Cours\n(Modèle)" as CourseModel
+entity "Quiz / Résultat\n(Modèle)" as QuizModel
+
+Admin -> Vue : 1. accederAccueil()
+activate Vue
+
+Vue -> Ctrl : 2. demanderStatistiques()
+activate Ctrl
+
+Ctrl -> UserModel : 3. compterUtilisateurs()
+activate UserModel
+UserModel --> Ctrl : 4. nombre_etudiants, nombre_enseignants
+deactivate UserModel
+
+Ctrl -> CourseModel : 5. compterCours()
+activate CourseModel
+CourseModel --> Ctrl : 6. nombre_cours
+deactivate CourseModel
+
+Ctrl -> QuizModel : 7. calculerMoyennesQuiz()
+activate QuizModel
+QuizModel --> Ctrl : 8. taux_reussite, nombre_quiz
+deactivate QuizModel
+
+Ctrl --> Vue : 9. retournerVueStats(statistiques)
+deactivate Ctrl
+
+Vue --> Admin : 10. afficherTableauDeBord(indicateurs)
+deactivate Vue
+
+@enduml

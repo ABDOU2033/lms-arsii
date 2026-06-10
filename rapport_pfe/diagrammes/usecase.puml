@@ -1,0 +1,176 @@
+@startuml usecase
+
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam nodesep 30
+skinparam ranksep 40
+
+skinparam actor {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontColor #000000
+    FontSize 13
+    FontStyle bold
+}
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontColor #000000
+    ArrowColor #000000
+    FontSize 11
+}
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontColor #000000
+    FontStyle bold
+    FontSize 14
+    BorderThickness 2
+}
+
+skinparam note {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+}
+
+skinparam package {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+}
+
+skinparam linetype ortho
+
+title FIGURE 1 - Diagramme de cas d'utilisation complet de l'application LMS
+
+left to right direction
+
+' ===== ACTEURS =====
+
+actor "Etudiant" as ETU
+actor "Enseignant" as ENS
+actor "Administrateur" as ADM
+
+' ===== SYSTEME =====
+
+rectangle "Systeme LMS EduLearn" {
+
+    ' --- Authentification ---
+    usecase "S'authentifier" as UC_AUTH
+    usecase "S'inscrire" as UC_REG
+
+    ' --- Etudiant ---
+    usecase "Consulter le tableau\nde bord" as UC_E1
+    usecase "Consulter le catalogue\nde cours" as UC_E2
+    usecase "S'inscrire a un cours\n(cle d'inscription)" as UC_E3
+    usecase "Consulter mes cours" as UC_E4
+    usecase "Consulter une lecon" as UC_E5
+    usecase "Marquer lecon\ncompletee" as UC_E6
+    usecase "Passer un quiz" as UC_E7
+    usecase "Consulter mes resultats" as UC_E8
+    usecase "Gerer le profil" as UC_E9
+    usecase "Se deconnecter" as UC_E10
+
+    ' --- Enseignant ---
+    usecase "Consulter le tableau\nde bord" as UC_T1
+    usecase "Gerer les cours" as UC_T2
+    usecase "Gerer les lecons" as UC_T3
+    usecase "Gerer les quiz" as UC_T4
+    usecase "Gerer les questions" as UC_T5
+    usecase "Generer cle\nd'inscription" as UC_T6
+    usecase "Consulter les resultats\ndes etudiants" as UC_T7
+    usecase "Corriger une copie" as UC_T8
+    usecase "Evaluer reponse\ntexte libre" as UC_T9
+    usecase "Gerer le profil" as UC_T10
+    usecase "Se deconnecter" as UC_T11
+
+    ' --- Admin ---
+    usecase "Consulter le tableau\nde bord" as UC_A1
+    usecase "Gerer les utilisateurs" as UC_A2
+    usecase "Activer / Desactiver\nun compte" as UC_A3
+    usecase "Consulter les statistiques" as UC_A4
+    usecase "Consulter les reponses" as UC_A5
+    usecase "Gerer le profil" as UC_A6
+    usecase "Se deconnecter" as UC_A7
+}
+
+' ===== LIENS ETUDIANT =====
+ETU --> UC_E1
+ETU --> UC_E2
+ETU --> UC_E3
+ETU --> UC_E4
+ETU --> UC_E5
+ETU --> UC_E7
+ETU --> UC_E8
+ETU --> UC_E9
+ETU --> UC_E10
+
+' ===== LIENS ENSEIGNANT =====
+ENS --> UC_T1
+ENS --> UC_T2
+ENS --> UC_T3
+ENS --> UC_T4
+ENS --> UC_T7
+ENS --> UC_T10
+ENS --> UC_T11
+
+' ===== LIENS ADMIN =====
+ADM --> UC_A1
+ADM --> UC_A2
+ADM --> UC_A4
+ADM --> UC_A5
+ADM --> UC_A6
+ADM --> UC_A7
+
+' ===== LIENS VISITEUR (via Etudiant) =====
+ETU --> UC_AUTH
+ETU --> UC_REG
+
+' ===== <<include>> =====
+UC_E1 ..> UC_AUTH : <<include>>
+UC_E2 ..> UC_AUTH : <<include>>
+UC_E3 ..> UC_AUTH : <<include>>
+UC_E4 ..> UC_AUTH : <<include>>
+UC_E5 ..> UC_AUTH : <<include>>
+UC_E7 ..> UC_AUTH : <<include>>
+UC_E8 ..> UC_AUTH : <<include>>
+UC_T1 ..> UC_AUTH : <<include>>
+UC_T2 ..> UC_AUTH : <<include>>
+UC_T3 ..> UC_AUTH : <<include>>
+UC_T4 ..> UC_AUTH : <<include>>
+UC_T7 ..> UC_AUTH : <<include>>
+UC_A1 ..> UC_AUTH : <<include>>
+UC_A2 ..> UC_AUTH : <<include>>
+UC_A4 ..> UC_AUTH : <<include>>
+UC_A5 ..> UC_AUTH : <<include>>
+
+' ===== <<extend>> =====
+UC_E6 ..> UC_E5 : <<extend>>
+UC_E3 ..> UC_E2 : <<include>>
+UC_T3 ..> UC_T2 : <<extend>>
+UC_T5 ..> UC_T4 : <<extend>>
+UC_T6 ..> UC_T2 : <<extend>>
+UC_T8 ..> UC_T7 : <<extend>>
+UC_T9 ..> UC_T8 : <<extend>>
+UC_A3 ..> UC_A2 : <<extend>>
+
+' ===== NOTES =====
+note right of UC_E3
+  Necessite la cle
+  d'inscription fournie
+  par l'enseignant
+end note
+
+note right of UC_T9
+  Correction manuelle
+  des questions a
+  reponse libre
+end note
+
+footer LMS EduLearn - PFE ARSII
+
+@enduml

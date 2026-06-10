@@ -1,0 +1,96 @@
+@startuml Diagramme_Sequence_Creation_Cours
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFFF
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFFF
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Création d'un cours
+actor "Enseignant" as Teacher
+boundary "cours/create.blade.php" as View
+control "EnseignantController" as Ctrl
+entity "Cours" as CoursModel
+database "Base de données" as DB
+
+autonumber
+Teacher -> View : Accéder au formulaire "Créer un cours"
+activate View
+View --> Teacher : Formulaire de création affiché
+
+Teacher -> View : Saisir titre, description et cliquer "Enregistrer"
+View -> Ctrl : storeCours(request)
+activate Ctrl
+
+Ctrl -> Ctrl : Valider les données (titre obligatoire)
+alt Données invalides
+    Ctrl --> View : Retour avec erreurs de validation
+    View --> Teacher : Afficher les messages d'erreur
+else Données valides
+    Ctrl -> CoursModel : create(titre, description, enseignant_id, statut='brouillon')
+    activate CoursModel
+    CoursModel -> DB : INSERT INTO cours
+    activate DB
+    DB --> CoursModel : Cours créé (id)
+    deactivate DB
+    CoursModel --> Ctrl : Objet Cours
+    deactivate CoursModel
+    Ctrl --> View : Rediriger vers cours.show avec message succès
+    View --> Teacher : Afficher la page du cours (Statut : Brouillon)
+end
+deactivate Ctrl
+deactivate View
+@enduml

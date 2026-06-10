@@ -34,12 +34,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="note_max" class="form-label">Note Maximale <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control @error('note_max') is-invalid @enderror" 
-                                   id="note_max" name="note_max" value="{{ old('note_max', $quiz->note_max) }}" min="1" required>
-                            @error('note_max')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label">Note Maximale</label>
+                            <input type="number" class="form-control" value="{{ $quiz->questions->sum('points') }}" readonly disabled>
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Calculée automatiquement selon la somme des points des questions</small>
                         </div>
 
                         <div class="d-flex gap-2">

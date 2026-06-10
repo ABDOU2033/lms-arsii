@@ -1,0 +1,65 @@
+@startuml sequence_participation_quiz
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Étudiant" as Etu
+boundary "Page Quiz\n(IHM)" as Vue
+control "QuizController\n(Contrôleur)" as Ctrl
+entity "Tentative" as Attempt
+entity "Reponse" as Reponse
+boundary "Page Résultat\n(IHM)" as ResultVue
+
+Etu -> Vue : 1. cliquer("Commencer le quiz")
+activate Vue
+
+Vue -> Ctrl : 2. demarrerTentative(quiz)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Attempt : 3. creerTentative(etudiant, quiz)
+activate Attempt
+Attempt --> Ctrl : 4. tentative_creee
+deactivate Attempt
+
+Ctrl -> Vue : 5. afficherQuestions(questions)
+deactivate Ctrl
+activate Vue
+
+Etu -> Vue : 6. cocherLesReponses()
+Etu -> Vue : 7. cliquer("Soumettre")
+
+Vue -> Ctrl : 8. soumettreTentative(reponses_choisies)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Reponse : 9. enregistrerReponses(tentative_id, reponses_choisies)
+activate Reponse
+Reponse --> Ctrl : 10. succes
+deactivate Reponse
+
+Ctrl -> Ctrl : 11. calculerScore()
+
+Ctrl -> Attempt : 12. mettreAJour(score, date_fin)
+activate Attempt
+Attempt --> Ctrl : 13. succes
+deactivate Attempt
+
+Ctrl -> ResultVue : 14. redirigerVersResultat(tentative)
+deactivate Ctrl
+activate ResultVue
+
+ResultVue --> Etu : 15. afficherScore(score)
+deactivate ResultVue
+
+@enduml

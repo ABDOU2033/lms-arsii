@@ -6,15 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Etudiant;
 use App\Models\Enseignant;
+use App\Models\Cours;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthWebController extends Controller
 {
+    private function getStats(): array
+    {
+        return [
+            'nb_cours'      => Cours::count(),
+            'nb_etudiants'  => User::where('role', 'etudiant')->where('actif', true)->count(),
+            'nb_enseignants'=> User::where('role', 'enseignant')->where('actif', true)->count(),
+        ];
+    }
+
     public function showLogin()
     {
-        return view('auth.login');
+        return view('auth.login', $this->getStats());
     }
 
     public function login(Request $request)
@@ -45,7 +55,7 @@ class AuthWebController extends Controller
 
     public function showRegister()
     {
-        return view('auth.register');
+        return view('auth.register', $this->getStats());
     }
 
     public function register(Request $request)

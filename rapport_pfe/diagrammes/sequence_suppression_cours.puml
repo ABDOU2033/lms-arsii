@@ -1,0 +1,52 @@
+@startuml sequence_suppression_cours
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Enseignant" as Ens
+boundary "Vue Liste des Cours\n(IHM)" as Vue
+control "CourseController\n(Contrôleur)" as Ctrl
+entity "Course\n(Cours)" as Model
+
+Ens -> Vue : 1. cliquer("Supprimer le cours")
+activate Vue
+
+Vue -> Ctrl : 2. demanderSuppression(cours_id)
+activate Ctrl
+
+Ctrl -> Ctrl : 3. verifierAutorisation()
+
+alt Accès refusé
+    
+    Ctrl --> Vue : 4. retournerErreurAutorisation()
+    
+    Vue --> Ens : 5. afficherMessageErreur()
+    
+else Accès autorisé
+    
+    Ctrl -> Model : 6. supprimerCours(cours_id)
+    activate Model
+    
+    Model --> Ctrl : 7. succes
+    deactivate Model
+    
+    Ctrl --> Vue : 8. redirigerAvecMessage("Cours supprimé avec succès !")
+    
+    Vue --> Ens : 9. afficherListeMiseAJour()
+
+end
+
+deactivate Ctrl
+deactivate Vue
+
+@enduml

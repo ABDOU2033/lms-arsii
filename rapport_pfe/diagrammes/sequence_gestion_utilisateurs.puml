@@ -1,0 +1,53 @@
+@startuml sequence_gestion_utilisateurs
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Administrateur" as Admin
+boundary "Vue Gestion Utilisateurs\n(IHM)" as Vue
+control "UserController\n(Contrôleur)" as Ctrl
+
+== Consultation de la liste des utilisateurs ==
+
+Admin -> Vue : 1. accederGestionUtilisateurs()
+activate Vue
+
+Vue -> Ctrl : 2. demanderListeUtilisateurs()
+activate Ctrl
+
+Ctrl -> Ctrl : 3. recupererUtilisateurs()
+
+Ctrl --> Vue : 4. retournerVue(liste_utilisateurs)
+deactivate Ctrl
+
+Vue --> Admin : 5. afficherTableauUtilisateurs()
+
+== Création d'un utilisateur ==
+
+Admin -> Vue : 6. saisirInfos(nom, email, role) et valider
+
+Vue -> Ctrl : 7. soumettreNouvelUtilisateur(donnees)
+activate Ctrl
+
+Ctrl -> Ctrl : 8. validerDonnees()
+
+Ctrl -> Ctrl : 9. creerUtilisateur(donnees_validees)
+
+Ctrl --> Vue : 10. redirigerAvecMessage("Succès")
+deactivate Ctrl
+
+Vue --> Admin : 11. afficherListeMiseAJour()
+
+deactivate Vue
+
+@enduml

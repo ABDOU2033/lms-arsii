@@ -1,0 +1,95 @@
+@startuml Diagramme_Sequence_Authentification
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFE1
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFE1
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Authentification
+actor "Utilisateur" as User
+boundary "login.blade.php" as View
+control "AuthWebController" as Ctrl
+database "Base de données" as DB
+
+autonumber
+User -> View : Saisir email et mot de passe
+activate View
+View -> Ctrl : login(request)
+activate Ctrl
+
+Ctrl -> DB : Vérifier les identifiants (email, password)
+activate DB
+DB --> Ctrl : [Utilisateur / Invalide]
+deactivate DB
+
+alt Identifiants invalides
+    Ctrl --> View : Rediriger avec erreur (credentials)
+    View --> User : Message d'erreur "Identifiants invalides"
+else Compte inactif / suspendu
+    Ctrl --> View : Rediriger avec erreur (compte inactif)
+    View --> User : Message "Votre compte est inactif"
+else Identifiants corrects et compte actif
+    Ctrl -> DB : Mettre à jour derniere_connexion
+    activate DB
+    DB --> Ctrl : Confirmation
+    deactivate DB
+    Ctrl --> View : Rediriger vers le dashboard correspondant
+    View --> User : Afficher l'espace (Admin / Enseignant / Étudiant)
+end
+deactivate Ctrl
+deactivate View
+@enduml

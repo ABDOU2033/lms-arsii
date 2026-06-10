@@ -1,0 +1,169 @@
+@startuml classe_domaine
+
+' -- Paramètre pour une image Haute Définition (très nette) --
+skinparam dpi 150
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classBackgroundColor #DCE9F5
+skinparam classBorderColor #5B8DB8
+skinparam classBorderThickness 1.2
+skinparam classArrowColor #5B8DB8
+skinparam classFontName Arial
+skinparam classFontSize 11
+skinparam classAttributeFontSize 10
+skinparam classAttributeIconSize 0
+skinparam padding 5
+skinparam nodesep 20
+skinparam ranksep 40
+
+left to right direction
+
+' ═══════════════════════════════
+'  CLASSES
+' ═══════════════════════════════
+
+abstract class User {
+  -id : Integer
+  -nom : String
+  -prenom : String
+  -email : String
+  -mot_de_passe : String
+  -role : String
+  -actif : Boolean
+  -created_at : Date
+}
+
+class Administrateur {
+  --
+  +consulterStatistiques()
+  +gererUtilisateurs()
+}
+
+class Enseignant {
+  -specialite : String
+  -bio : String
+  --
+  +creerCours()
+  +consulterResultats()
+}
+
+class Etudiant {
+  -niveau : String
+  --
+  +consulterCours()
+  +voirProgression()
+}
+
+class Cours {
+  -id : Integer
+  -titre : String
+  -description : String
+  -statut : String
+  -date_creation : Date
+  -cle_inscription : String
+  --
+  +publier()
+  +archiver()
+}
+
+class Inscription {
+  -id : Integer
+  -date_inscription : Date
+}
+
+class Progression {
+  -id : Integer
+  -pourcentage : Integer
+  -date_maj : Date
+  --
+  +mettreAJour()
+}
+
+class Lecon {
+  -id : Integer
+  -titre : String
+  -contenu : String
+  -type : String
+  -ordre : Integer
+}
+
+class Quiz {
+  -id : Integer
+  -titre : String
+  -duree : Integer
+  -note_max : Integer
+  --
+  +calculerScore()
+  +corrigerAutomatiquement()
+}
+
+class LeconVue {
+  -id : Integer
+  -lecon_id : Integer
+  -cours_id : Integer
+  -created_at : Date
+}
+
+class Question {
+  -id : Integer
+  -enonce : String
+  -type : String
+  -points : Integer
+  -reponse_attendue : String
+}
+
+class ChoixReponse {
+  -id : Integer
+  -contenu : String
+  -est_correcte : Boolean
+}
+
+class Reponse {
+  -id : Integer
+  -contenu : String
+  -est_correcte : Boolean
+  -date_reponse : Date
+  -score_obtenu : Integer
+}
+
+' ═══════════════════════════════
+'  RELATIONS
+' ═══════════════════════════════
+
+' ── Héritage (triangle vide) : les 3 spécialisent User ──
+Etudiant       --|> User
+Enseignant     --|> User
+Administrateur --|> User
+
+' ── Enseignant crée des Cours (1 enseignant → 0..* cours) ──
+Enseignant "1" -- "0..*" Cours : crée
+
+' ── Composition Cours → Lecon / Quiz (cascade delete) ──
+Cours "1" *-- "0..*" Lecon : contient
+Cours "1" *-- "0..*" Quiz  : possède
+
+' ── Composition Quiz → Question (cascade delete) ──
+Quiz "1" *-- "1..*" Question : comprend
+
+' ── Composition Question → ChoixReponse (cascade delete) ──
+Question "1" *-- "0..*" ChoixReponse : contient (choix)
+
+' ── Etudiant inscrit dans des Cours (via Inscription) ──
+Etudiant    "1"    *-- "0..*" Inscription : effectue
+Inscription "0..*" --  "1"  Cours        : pour
+
+' ── Progression de l'Etudiant dans un Cours ──
+Etudiant    "1"    *-- "0..*" Progression : suit
+Progression "0..*" --  "1"  Cours
+
+' ── Lecons vues par l'Etudiant ──
+Etudiant "1"    *-- "0..*" LeconVue : a vu
+LeconVue "0..*" --  "1"  Lecon    : concerne
+
+' ── Reponses soumises par l'Etudiant a une Question ──
+Etudiant "1"    *-- "0..*" Reponse : soumet
+Reponse  "0..*" --  "1"  Question : repond a
+
+@enduml

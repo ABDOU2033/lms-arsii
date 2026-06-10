@@ -1,0 +1,96 @@
+@startuml use_case
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+
+skinparam usecase {
+  BackgroundColor #DCE9F5
+  BorderColor     #5B8DB8
+  BorderThickness 1.2
+  FontName        Arial
+  FontSize        11
+  ArrowColor      #5B8DB8
+  ArrowThickness  1.2
+}
+
+skinparam actor {
+  BackgroundColor white
+  BorderColor     #5B8DB8
+  FontName        Arial
+  FontSize        11
+}
+
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 20
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────
+actor "Étudiant"       as ETU
+actor "Enseignant"     as ENS
+actor "Administrateur" as ADM
+
+' ── Système ──────────────────────────────
+rectangle Système {
+
+  usecase "Consulter Cours"              as UC1
+  usecase "S'inscrire à un Cours"        as UC2
+  usecase "Voir Progression"             as UC3
+  usecase "Participer à un Quiz"         as UC4
+  usecase "Voir Résultats Quiz"          as UC5
+
+  usecase "Gérer Cours"                  as UC6
+  usecase "Créer Leçon"                  as UC7
+  usecase "Modifier Profil"              as UC8
+  usecase "Créer Quiz"                   as UC9
+  usecase "Ajouter Question"             as UC10
+  usecase "Corriger Quiz"                as UC11
+  usecase "Consulter Résultats Étudiants" as UC12
+
+  usecase "Consulter Statistiques"       as UC13
+  usecase "Gérer Utilisateurs"           as UC14
+  usecase "Activer / Désactiver Comptes" as UC15
+
+  usecase "S'authentifier"               as AUTH
+}
+
+' ── Relations Étudiant ────────────────────
+ETU --> UC1
+ETU --> UC2
+ETU --> UC3
+ETU --> UC4
+ETU --> UC5
+
+' ── Relations Enseignant ─────────────────
+ENS --> UC6
+ENS --> UC7
+ENS --> UC8
+ENS --> UC9
+ENS --> UC10
+ENS --> UC11
+ENS --> UC12
+
+' ── Relations Administrateur ─────────────
+ADM --> UC13
+ADM --> UC14
+ADM --> UC15
+
+' ── <<include>> vers S'authentifier ──────
+UC1  ..> AUTH : <<include>>
+UC2  ..> AUTH : <<include>>
+UC3  ..> AUTH : <<include>>
+UC4  ..> AUTH : <<include>>
+UC5  ..> AUTH : <<include>>
+UC6  ..> AUTH : <<include>>
+UC7  ..> AUTH : <<include>>
+UC8  ..> AUTH : <<include>>
+UC9  ..> AUTH : <<include>>
+UC10 ..> AUTH : <<include>>
+UC11 ..> AUTH : <<include>>
+UC12 ..> AUTH : <<include>>
+UC13 ..> AUTH : <<include>>
+UC14 ..> AUTH : <<include>>
+
+@enduml

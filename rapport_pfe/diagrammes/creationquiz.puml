@@ -1,0 +1,106 @@
+@startuml Diagramme_Sequence_Creation_Quiz
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFE1
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFE1
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Création d'un quiz
+actor "Enseignant" as Teacher
+boundary "quiz/create.blade.php" as View
+control "EnseignantController" as Ctrl
+entity "Quiz" as QuizModel
+entity "Question" as QuesModel
+database "Base de données" as DB
+
+autonumber
+Teacher -> View : Cliquer "Créer un quiz"
+activate View
+View --> Teacher : Formulaire de création affiché
+
+Teacher -> View : Saisir titre, durée, note_max et soumettre
+View -> Ctrl : storeQuiz(request, cours)
+activate Ctrl
+Ctrl -> QuizModel : create(cours_id, titre, duree, note_max)
+activate QuizModel
+QuizModel -> DB : INSERT INTO quizzes
+activate DB
+DB --> QuizModel : Quiz créé
+deactivate DB
+QuizModel --> Ctrl : Quiz
+deactivate QuizModel
+Ctrl --> View : Rediriger vers quiz.show
+deactivate Ctrl
+View --> Teacher : Quiz créé, prêt pour l'ajout de questions
+
+loop Pour chaque question à ajouter
+    Teacher -> View : Saisir énoncé, type, points et valider
+    View -> Ctrl : storeQuestion(request, quiz)
+    activate Ctrl
+    Ctrl -> QuesModel : create(quiz_id, enonce, type, points)
+    activate QuesModel
+    QesModel -> DB : INSERT INTO questions
+    activate DB
+    DB --> QesModel : Question créée
+    deactivate DB
+    QesModel --> Ctrl : Question
+    deactivate QesModel
+    Ctrl --> View : Question ajoutée à la liste
+    deactivate Ctrl
+end
+deactivate View
+@enduml

@@ -43,6 +43,21 @@ if ($lecon->type === 'video' && $isRemote) {
                     Votre navigateur ne supporte pas la vidéo.
                 </video>
             @endif
+        @elseif($lecon->type === 'pdf')
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-danger fs-6"><i class="bi bi-file-earmark-pdf"></i> Document PDF</span>
+                    <a href="{{ asset('storage/' . $lecon->contenu) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-download"></i> Télécharger le PDF
+                    </a>
+                </div>
+                <iframe src="{{ asset('storage/' . $lecon->contenu) }}" 
+                        style="width: 100%; height: 70vh; border: 1px solid #ddd; border-radius: 8px;" 
+                        title="{{ $lecon->titre }}">
+                    <p>Votre navigateur ne supporte pas l'affichage PDF. 
+                       <a href="{{ asset('storage/' . $lecon->contenu) }}">Téléchargez le PDF</a>.</p>
+                </iframe>
+            </div>
         @else
             <div class="mb-4">
                 {!! nl2br(e($lecon->contenu)) !!}

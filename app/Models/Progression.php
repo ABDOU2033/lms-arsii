@@ -36,12 +36,15 @@ class Progression extends Model
         $quizzesCompletes = 0;
 
         foreach ($this->cours->quizzes as $quiz) {
-            $reponsesCount = Reponse::where('etudiant_id', $this->etudiant_id)
+            $reponses = Reponse::where('etudiant_id', $this->etudiant_id)
                 ->whereHas('question', function ($query) use ($quiz) {
                     $query->where('quiz_id', $quiz->id);
-                })->count();
+                })->get();
 
-            if ($reponsesCount > 0 && $reponsesCount >= $quiz->questions()->count()) {
+            $reponsesCount = $reponses->count();
+            $hasPending = $reponses->contains('score_obtenu', -1);
+
+            if ($reponsesCount > 0 && $reponsesCount >= $quiz->questions()->count() && !$hasPending) {
                 $quizzesCompletes++;
             }
         }

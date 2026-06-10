@@ -1,0 +1,129 @@
+@startuml Diagramme_Sequence_Correction_Copie
+
+' Style Enterprise Architect (EA) Classique
+skinparam style strictuml
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam shadow false
+
+skinparam sequence {
+    ArrowColor #000000
+    ArrowFontColor #000000
+    ArrowFontSize 11
+    ArrowFontName Arial
+    
+    LifeLineBorderColor #000000
+    LifeLineBackgroundColor #FFFFFF
+    
+    ParticipantBorderColor #000000
+    ParticipantBackgroundColor #FFFFE1
+    ParticipantFontColor #000000
+    ParticipantFontSize 12
+    ParticipantFontName Arial Bold
+    
+    ActorBorderColor #000000
+    ActorBackgroundColor #FFFFE1
+    ActorFontColor #000000
+    ActorFontSize 12
+    ActorFontName Arial Bold
+    
+    BoxBorderColor #000000
+    BoxBackgroundColor #FFFFE1
+    BoxFontColor #000000
+    BoxFontSize 11
+    
+    DividerBorderColor #000000
+    DividerBackgroundColor #F2F3F4
+    DividerFontColor #000000
+    
+    GroupBorderColor #000000
+    GroupHeaderBackgroundColor #EAEAEA
+    GroupBackgroundColor #FFFFFF
+    GroupFontColor #000000
+    GroupFontSize 11
+    GroupBoldFont true
+    
+    ReferenceBorderColor #000000
+    ReferenceBackgroundColor #FFFFFF
+    
+    SequenceLifeLineBorderThickness 1
+    SequenceParticipantBorderThickness 1
+    SequenceActorBorderThickness 1
+}
+
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #000000
+    FontColor #000000
+    FontSize 10
+    FontName Arial
+}
+
+title Diagramme de séquence — Correction d'une copie
+actor "Enseignant" as Teacher
+boundary "enseignant/copie/correction" as View
+control "EnseignantController" as Ctrl
+entity "Reponse" as RepModel
+entity "Quiz" as QuizModel
+entity "Progression" as ProgModel
+database "Base de données" as DB
+
+autonumber
+Teacher -> View : Accéder à la copie d'un étudiant pour correction
+activate View
+View -> Ctrl : corrigerCopie(quiz, etudiant)
+activate Ctrl
+Ctrl -> RepModel : where('etudiant_id', etudiant)->get()
+activate RepModel
+RepModel -> DB : SELECT * FROM reponses WHERE etudiant_id = ?
+activate DB
+DB --> RepModel : Liste de réponses
+deactivate DB
+RepModel --> Ctrl : Collection de réponses
+deactivate RepModel
+Ctrl --> View : Vue correction.blade.php avec réponses
+deactivate Ctrl
+View --> Teacher : Réponses de l'étudiant affichées
+
+Teacher -> View : Saisir note et statut pour les questions libres et soumettre
+View -> Ctrl : enregistrerCorrection(request, quiz, etudiant)
+activate Ctrl
+
+loop Pour chaque réponse corrigée manuellement
+    Ctrl -> RepModel : update(score_obtenu, est_correcte)
+    activate RepModel
+    RepModel -> DB : UPDATE reponses SET score_obtenu = ?, est_correcte = ? WHERE id = ?
+    activate DB
+    DB --> RepModel : OK
+    deactivate DB
+    deactivate RepModel
+end
+
+Ctrl -> QuizModel : calculerScore(etudiant)
+activate QuizModel
+QuizModel -> DB : SUM(score_obtenu)
+activate DB
+DB --> QuizModel : Score total
+deactivate DB
+QuizModel --> Ctrl : Score
+deactivate QuizModel
+
+Ctrl -> ProgModel : where(etudiant_id, cours_id)->first()
+activate ProgModel
+ProgModel -> DB : SELECT progression
+activate DB
+DB --> ProgModel : Progression
+deactivate DB
+Ctrl -> ProgModel : mettreAJour()
+activate ProgModel
+ProgModel -> DB : UPDATE pourcentage
+activate DB
+DB --> ProgModel : OK
+deactivate DB
+deactivate ProgModel
+
+Ctrl --> View : Rediriger vers résultats avec succès
+deactivate Ctrl
+View --> Teacher : Copie marquée comme corrigée
+deactivate View
+@enduml

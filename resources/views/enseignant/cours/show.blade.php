@@ -45,7 +45,7 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong>{{ $lecon->titre }}</strong>
-                                        <span class="badge bg-{{ $lecon->type == 'video' ? 'danger' : ($lecon->type == 'texte' ? 'info' : 'warning') }} ms-2">{{ ucfirst($lecon->type) }}</span>
+                                        <span class="badge bg-{{ $lecon->type == 'video' ? 'danger' : ($lecon->type == 'pdf' ? 'warning' : ($lecon->type == 'texte' ? 'info' : 'secondary')) }} ms-2">{{ ucfirst($lecon->type) }}</span>
                                     </div>
                                     <div class="d-flex gap-2">
                                         <a href="{{ route('enseignant.lecon.edit', $lecon) }}" class="btn btn-sm btn-outline-primary">
@@ -109,6 +109,31 @@
         </div>
 
         <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6>Clé d'inscription</h6>
+                </div>
+                <div class="card-body">
+                    @if($cours->cle_inscription)
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-dark fs-5 px-3 py-2 me-2" style="font-family: monospace;">{{ $cours->cle_inscription }}</span>
+                            <button onclick="navigator.clipboard.writeText('{{ $cours->cle_inscription }}'); this.innerHTML='✅ Copié!';" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mb-2">Partagez cette clé avec vos étudiants pour qu'ils puissent s'inscrire.</small>
+                    @else
+                        <p class="text-muted small mb-2">Aucune clé générée. Les étudiants ne peuvent pas s'inscrire sans clé.</p>
+                    @endif
+                    <form action="{{ route('enseignant.cours.genererCle', $cours) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-{{ $cours->cle_inscription ? 'warning' : 'primary' }}">
+                            <i class="bi bi-key"></i> {{ $cours->cle_inscription ? 'Régénérer la clé' : 'Générer une clé' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <div class="card mb-4">
                 <div class="card-header">
                     <h6>Statistiques</h6>

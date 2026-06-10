@@ -9,7 +9,7 @@ class Cours extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['enseignant_id', 'titre', 'description', 'date_creation', 'statut'];
+    protected $fillable = ['enseignant_id', 'titre', 'description', 'date_creation', 'statut', 'cle_inscription', 'categorie', 'niveau_scolaire', 'annee_universitaire'];
 
     protected $casts = [
         'date_creation' => 'datetime',

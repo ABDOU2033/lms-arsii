@@ -1,0 +1,62 @@
+@startuml sequence_authentification
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Utilisation des stéréotypes style Enterprise Architect
+actor "Utilisateur" as User
+boundary "Page Connexion\n(IHM)" as Vue
+control "AuthController\n(Contrôleur)" as Ctrl
+entity "User" as Model
+boundary "Tableau de Bord\n(IHM)" as Dashboard
+
+User -> Vue : 1. saisirIdentifiants(email, mot_de_passe)
+activate Vue
+
+User -> Vue : 2. cliquer("Se connecter")
+Vue -> Ctrl : 3. soumettre(requete)
+deactivate Vue
+activate Ctrl
+
+Ctrl -> Model : 4. verifierIdentifiants(email, mot_de_passe)
+activate Model
+
+Model --> Ctrl : 5. resultat (vrai / faux)
+deactivate Model
+
+alt Authentification réussie (vrai)
+    
+    Ctrl -> Model : 6. mettreAJour(derniere_connexion)
+    activate Model
+    Model --> Ctrl : 7. succès
+    deactivate Model
+    
+    Ctrl -> Dashboard : 8. rediriger(Tableau de Bord)
+    deactivate Ctrl
+    activate Dashboard
+    
+    Dashboard --> User : 9. afficherEspace(Admin, Ens, ou Etu)
+    deactivate Dashboard
+
+else Identifiants invalides (faux)
+    
+    activate Ctrl
+    Ctrl -> Vue : 10. redirigerAvecErreur("Identifiants incorrects")
+    deactivate Ctrl
+    activate Vue
+    
+    Vue --> User : 11. afficherErreur("Identifiants incorrects")
+    deactivate Vue
+
+end
+
+@enduml

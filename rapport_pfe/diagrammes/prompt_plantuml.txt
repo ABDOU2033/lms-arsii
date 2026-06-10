@@ -1,0 +1,34 @@
+Génère un code PlantUML complet pour un diagramme de séquence UML représentant le cas d'utilisation "S'inscrire à un cours" dans une application Laravel (LMS). Le rendu doit ressembler de manière identique au design par défaut du logiciel Enterprise Architect (EA).
+
+Voici les contraintes et détails techniques à respecter :
+
+1. STYLE VISUEL D'ENTERPRISE ARCHITECT (EA) :
+- Utilise le mode strictuml (skinparam style strictuml) pour des flèches et traits d'activation conformes aux normes UML.
+- Applique les couleurs caractéristiques d'EA : fond jaune/beige pâle (#FFFFE1) pour tous les acteurs, participants, frontières, contrôleurs et entités, avec des bordures noires fines (#000000).
+- La police par défaut de tous les éléments (titre, acteurs, messages, groupes) doit être "Arial", taille 11 ou 12.
+- Les flèches de retour doivent être en pointillés (-->).
+- Les barres d'activation de cycle de vie doivent être présentes (activate et deactivate).
+
+2. ACTEURS ET COMPOSANTS (Cohérence avec l'application Laravel) :
+- actor "Étudiant"
+- boundary "catalogue.blade.php" (Interface utilisateur)
+- control "EtudiantController" (Contrôleur)
+- entity "Auth / User" (Modèle d'authentification)
+- entity "Inscription" (Modèle Eloquent)
+- entity "Progression" (Modèle Eloquent)
+- database "Base de Données (MySQL)"
+
+3. SCÉNARIO ET INTERACTIONS (Basé sur le code réel de l'application) :
+- L'Étudiant clique sur "S'inscrire" depuis l'interface catalogue.blade.php.
+- La vue envoie une requête POST vers la route /etudiant/cours/{cours}/inscrire gérée par EtudiantController@sInscrire.
+- Le Contrôleur récupère l'étudiant connecté via le modèle Auth (Auth::user()->etudiant).
+- Le Contrôleur interroge la base de données pour vérifier si l'inscription existe déjà.
+- Structure alternative (alt/else) :
+  * Si l'étudiant n'est pas encore inscrit :
+    - Le Contrôleur appelle Inscription::create(['etudiant_id', 'cours_id']) qui insère la ligne dans la table inscriptions.
+    - Le Contrôleur appelle Progression::create(['etudiant_id', 'cours_id', 'pourcentage' => 0]) qui insère la ligne dans la table progressions.
+  * Si déjà inscrit : (Redirection directe sans traitement).
+- Le Contrôleur retourne une redirection vers la page précédente (redirect()->back()->with('success', 'Inscrit avec succès.')).
+- La vue affiche le message de confirmation à l'Étudiant.
+
+Fournis uniquement le code PlantUML valide entouré des balises @startuml et @enduml.

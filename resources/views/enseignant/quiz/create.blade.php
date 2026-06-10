@@ -32,13 +32,8 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="note_max" class="form-label">Note Maximale <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control @error('note_max') is-invalid @enderror" 
-                                   id="note_max" name="note_max" value="{{ old('note_max', 20) }}" min="1" required>
-                            @error('note_max')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle"></i> La <strong>Note Maximale</strong> sera calculée automatiquement selon la somme des points de chaque question que vous ajouterez.
                         </div>
 
                         <div class="d-flex gap-2">

@@ -62,8 +62,8 @@
                                     </div>
                                 @endforelse
                             </div>
-                            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="addChoix()">
-                                <i class="bi bi-plus-circle"></i> Ajouter Choix
+                            <button type="button" id="addChoixBtn" class="btn btn-sm btn-success mt-2" onclick="addChoix()" style="display:none;">
+                                <i class="bi bi-plus-circle"></i> Ajouter un choix
                             </button>
 
                             <div class="mt-3" id="correctVraiFauxSection" style="display:none;">
@@ -84,6 +84,17 @@
                             <input type="number" class="form-control @error('points') is-invalid @enderror" 
                                    id="points" name="points" value="{{ old('points', $question->points) }}" min="1" required>
                             @error('points')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3" id="reponseAttendueSection" style="display: none;">
+                            <label for="reponse_attendue" class="form-label">Réponse attendue (guide de correction)</label>
+                            <textarea class="form-control @error('reponse_attendue') is-invalid @enderror" 
+                                      id="reponse_attendue" name="reponse_attendue" rows="4" 
+                                      placeholder="Indiquez la réponse attendue ou les éléments de correction...">{{ old('reponse_attendue', $question->reponse_attendue) }}</textarea>
+                            <small class="text-muted">Cette réponse sera visible uniquement par l'enseignant lors de la correction.</small>
+                            @error('reponse_attendue')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -111,14 +122,20 @@ function updateChoixSection() {
     const type = document.getElementById('type').value;
     const choixSection = document.getElementById('choixSection');
     const correctVraiFauxSection = document.getElementById('correctVraiFauxSection');
+    const reponseAttendueSection = document.getElementById('reponseAttendueSection');
+    const addBtn = document.getElementById('addChoixBtn');
 
     if (type === 'qcm') {
         choixSection.style.display = 'block';
         correctVraiFauxSection.style.display = 'none';
+        reponseAttendueSection.style.display = 'none';
+        addBtn.style.display = 'inline-block';
         // For qcm we keep existing rows loaded from server
     } else if (type === 'vrai_faux') {
         choixSection.style.display = 'block';
         correctVraiFauxSection.style.display = 'block';
+        reponseAttendueSection.style.display = 'none';
+        addBtn.style.display = 'none';
         document.getElementById('choixContainer').innerHTML = `
             <div class="input-group mb-2">
                 <input type="text" class="form-control" value="Vrai" readonly>
@@ -137,9 +154,16 @@ function updateChoixSection() {
             document.getElementById('correctVrai').checked = true;
             document.getElementById('correctFaux').checked = false;
         }
+    } else if (type === 'texte_libre') {
+        choixSection.style.display = 'none';
+        correctVraiFauxSection.style.display = 'none';
+        reponseAttendueSection.style.display = 'block';
+        addBtn.style.display = 'none';
     } else {
         choixSection.style.display = 'none';
         correctVraiFauxSection.style.display = 'none';
+        reponseAttendueSection.style.display = 'none';
+        addBtn.style.display = 'none';
     }
 }
 

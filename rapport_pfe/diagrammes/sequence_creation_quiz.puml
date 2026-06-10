@@ -1,0 +1,55 @@
+@startuml sequence_creation_quiz
+
+skinparam style strictuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #5B8DB8
+    LifeLineBorderColor #5B8DB8
+    LifeLineBackgroundColor #DCE9F5
+    ParticipantBorderColor #5B8DB8
+    ParticipantBackgroundColor white
+    BoxBorderColor #5B8DB8
+}
+
+' Stéréotypes style Enterprise Architect
+actor "Enseignant" as Ens
+boundary "Vue Création Quiz\n(IHM)" as Vue
+control "QuizController\n(Contrôleur)" as Ctrl
+entity "Quiz\n(Modèle)" as Model
+
+Ens -> Vue : 1. accederAuFormulaire("Créer un quiz")
+activate Vue
+
+Vue --> Ens : 2. afficherFormulaire()
+
+Ens -> Vue : 3. saisirDonnees(titre, questions) et valider
+Vue -> Ctrl : 4. soumettreNouveauQuiz(request)
+activate Ctrl
+
+Ctrl -> Ctrl : 5. validerDonnees()
+
+alt Données invalides
+    
+    Ctrl --> Vue : 6. retournerAvecErreurs()
+    
+    Vue --> Ens : 7. afficherMessagesErreur()
+    
+else Données valides
+    
+    Ctrl -> Model : 8. creerQuiz(donnees_validees)
+    activate Model
+    
+    Model --> Ctrl : 9. quiz_cree
+    deactivate Model
+    
+    Ctrl --> Vue : 10. redirigerVersDetails(quiz_id)
+    
+    Vue --> Ens : 11. afficherPageQuiz(statut: brouillon)
+
+end
+
+deactivate Ctrl
+deactivate Vue
+
+@enduml
